@@ -35,7 +35,7 @@ class ArtistParser(HTMLParser):
                     self.inartist = False
             if tag == "a" and self.inartist:
                 self.currentlink = attrs[0][1]
-                self.currentartist = attrs[1][1]
+                self.currentartist = attrs[1][1].replace('&', 'and').replace(" ", "-").lower()
                 self.artists.append(('http:' + self.currentlink, self.currentartist.replace("/", " ")))
 
     def handle_endtag(self, tag):

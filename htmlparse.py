@@ -13,6 +13,7 @@ def mineArtists(page):
     return parser.artists
 
 def mineSongs(artistList):
+    noSongs = 0
     for artist in artistList:
         # create artist directory
         createDirectory(artist[1])
@@ -23,7 +24,8 @@ def mineSongs(artistList):
         parser = lyricParsers.ArtistSongParser()
         parser.feed(str(response.content))
 
-        mineLyrics(artist[1], parser.songs)
+        mineLyrics(artist[1], parser.songs[noSongs:])
+        noSongs = noSongs + len(parser.songs[noSongs:])
 
 def mineLyrics(artistName, artistSongList):
     for song in artistSongList:
@@ -52,6 +54,17 @@ def createDirectory(artistName):
 
 # collect list of artists and their page links
 artists = mineArtists('http://songmeanings.com/artist/directory/main/popular/') # top 50 artists
-    
+
+# noSongs = 0
+# for artist in artists:
+#     response = requests.get(artist[0])
+
+#     parser = lyricParsers.ArtistSongParser()
+#     parser.feed(str(response.content))
+
+#     print([x[1] for x in parser.songs[noSongs:]])
+#     print("\n\n")
+#     noSongs = noSongs + len(parser.songs[noSongs:])
+
 # mine and write lyrics to file
-mineSongs(artists)
+mineSongs(artists[2:])

@@ -1,6 +1,22 @@
 import requests
 from html.parser import HTMLParser
 
+class SongLyricParser(HTMLParser):
+    indiv = False
+    lyrics = ""
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "div":
+            if attrs and attrs[0][1] == "holder lyric-box":
+                self.indiv = True
+            else:
+                self.indiv = False
+
+    def handle_data(self, data):
+        if self.indiv:
+            self.lyrics = self.lyrics + data
+
+
 class ArtistSongParser(HTMLParser):
     indiv = False
     insong = False
@@ -36,9 +52,13 @@ class ArtistSongParser(HTMLParser):
 # code 
 
 response = requests.get('http://songmeanings.com/artist/view/songs/46/') # pink floyd
+song = requests.get('http://songmeanings.com/songs/view/2880/')
 #response = requests.get('http://songmeanings.com/artist/view/songs/200/') # radiohead
 
 parser = ArtistSongParser()
 parser.feed(str(response.content))
 print(len(parser.songs))
-print(parser.songs)
+
+parser = SongLyricParser()
+parser.feed(str(song.content))
+print(parser.lyrics)

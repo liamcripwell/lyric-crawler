@@ -61,12 +61,9 @@ class ArtistSongParser(HTMLParser):
                     self.insong = False
             if tag == "a" and self.insong:
                 self.currentlink = attrs[2][1]
+                self.currenttitle = attrs[3][1].replace(" lyrics", "")
+                self.songs.append(('http:' + self.currentlink, self.currenttitle.replace("/", " ")))
 
     def handle_endtag(self, tag):
         if tag == "tbody":
             self.indiv = False
-
-    def handle_data(self, data):
-        if self.indiv and self.insong:
-            self.currenttitle = str(data)
-            self.songs.append(('http:' + self.currentlink, self.currenttitle.replace("/", " ")))

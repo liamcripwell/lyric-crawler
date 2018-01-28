@@ -1,64 +1,41 @@
 import requests
-from html.parser import HTMLParser
+import codecs
+import lyricParsers
 
-class SongLyricParser(HTMLParser):
-    indiv = False
-    lyrics = ""
+def mineSongs(artistName, artistSongList):
+    for song in artistSongList:
+        print("Mining lyrics for song: " + song[1])
+        try:
+            file = open("lyrics-data/" + artistName + "/" + song[1], "w") 
+        except "FileNotFoundError":
+            break
+        
+        response = requests.get(song[0])
 
-    def handle_starttag(self, tag, attrs):
-        if tag == "div":
-            if attrs and attrs[0][1] == "holder lyric-box":
-                self.indiv = True
-            else:
-                self.indiv = False
+        songParser = SongLyricParser()
+        songParser.feed(str(response.content))
 
-    def handle_data(self, data):
-        if self.indiv:
-            self.lyrics = self.lyrics + data
-
-
-class ArtistSongParser(HTMLParser):
-    indiv = False
-    insong = False
-    currentlink = ""
-    currenttitle = ""
-    songs = []
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "tbody":
-            self.indiv = True
-        if self.indiv:
-            if tag == "td":
-                if attrs[0][1] == "marked" or attrs[0][1] == "":
-                    self.insong = True
-                else:
-                    self.insong = False
-            if tag == "a" and self.insong:
-                self.currentlink = attrs[2][1]
-            #print("Encountered a start tag:", tag)
-
-    def handle_endtag(self, tag):
-        if tag == "tbody":
-            self.indiv = False
-        #if self.indiv:
-            #print("Encountered an end tag :", tag)
-
-    def handle_data(self, data):
-        if self.indiv and self.insong:
-            self.currenttitle = data
-            self.songs.append((self.currentlink, self.currenttitle))
+        file.write(songParser.lyrics)
+        file.close()
 
 
-# code 
+response = requests.get('http://songmeanings.com/artist/directory/main/popular/') # top 50 artists
 
-response = requests.get('http://songmeanings.com/artist/view/songs/46/') # pink floyd
-song = requests.get('http://songmeanings.com/songs/view/2880/')
-#response = requests.get('http://songmeanings.com/artist/view/songs/200/') # radiohead
+# parser = ArtistSongParser()
+# print("Finding songs for artist...")
+# parser.feed(str(response.content))
+# print("Number of songs found: " + str(len(parser.songs)))
 
-parser = ArtistSongParser()
+parser = lyricParsers.ArtistParser()
+print("Finding artists...")
 parser.feed(str(response.content))
-print(len(parser.songs))
+print("Number of artists found: " + str(len(parser.artists)))
+print([x[1] for x in parser.artists])
 
-parser = SongLyricParser()
-parser.feed(str(song.content))
-print(parser.lyrics)
+# import nltk
+
+# with open('lyrics-data/pink-floyd/A Great Day for Freedom.txt', 'r') as myfile:
+#     data=myfile.read()
+
+# words = nltk.word_tokenize(data)
+# print(words)

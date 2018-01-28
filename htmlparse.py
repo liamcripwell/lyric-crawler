@@ -1,12 +1,12 @@
 import requests
 import codecs
 import lyricParsers
+import os
 
 def mineArtists(page):
-    response = requests.get(page)
-
-    parser = lyricParsers.ArtistParser()
     print("Finding artists...")
+    response = requests.get(page)
+    parser = lyricParsers.ArtistParser()
     parser.feed(str(response.content))
     print("Number of artists found: " + str(len(parser.artists)))
     
@@ -14,6 +14,9 @@ def mineArtists(page):
 
 def mineSongs(artistList):
     for artist in artistList:
+        # create artist directory
+        createDirectory(artist[1])
+
         print("Mining songs for artist: " + artist[1])
         response = requests.get(artist[0])
 
@@ -36,21 +39,19 @@ def writeLyricsToFile(artistName, songName, lyrics):
     try:
         file = open("lyrics-data/" + artistName + "/" + songName, "w")
         print("Writing lyrics for " + songName + " to file")
+        file.write(lyrics)
+        file.close()
     except "FileNotFoundError":
         print("Could not write lyrics for " + songName + " to file...")
-        break
 
-    file.write(lyrics)
-    file.close()
-
-
-artists = mineArtists('http://songmeanings.com/artist/directory/main/popular/') # top 50 artists
-
-for artist in artists:
-    # create artist directory
-    directory = "lyrics-data/" + artist[1]
+def createDirectory(artistName):
+    directory = "lyrics-data/" + artistName
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
+# collect list of artists and their page links
+artists = mineArtists('http://songmeanings.com/artist/directory/main/popular/') # top 50 artists
+    
 # mine and write lyrics to file
 mineSongs(artists)
